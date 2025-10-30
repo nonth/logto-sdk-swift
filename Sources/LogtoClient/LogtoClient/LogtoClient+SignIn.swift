@@ -12,7 +12,8 @@ import Logto
 extension LogtoClient {
     func signInWithBrowser<AuthSession: LogtoAuthSession>(
         authSessionType _: AuthSession.Type,
-        redirectUri: String
+        redirectUri: String,
+        extraParams: [String: String]? = nil
     ) async throws {
         guard let redirectUri = URL(string: redirectUri) else {
             throw (LogtoClientErrors.SignIn(type: .unableToConstructRedirectUri, innerError: nil))
@@ -24,7 +25,8 @@ extension LogtoClient {
             logtoConfig: logtoConfig,
             oidcConfig: oidcConfig,
             redirectUri: redirectUri,
-            socialPlugins: socialPlugins
+            socialPlugins: socialPlugins,
+            extraParams: extraParams
         )
 
         let response = try await session.start()
@@ -61,6 +63,25 @@ extension LogtoClient {
         try await signInWithBrowser(
             authSessionType: LogtoAuthSession.self,
             redirectUri: redirectUri
+        )
+    }
+
+    /**
+     Start a sign in session with WKWebView with additional parameters. If the function returns with no error threw, it means the user has signed in successfully.
+
+     - Parameters:
+        - redirectUri: One of Redirect URIs of this application.
+        - extraParams: Additional parameters to be passed to the authorization endpoint.
+     - Throws: An error if the session failed to complete.
+     */
+    public func signInWithBrowser(
+        redirectUri: String,
+        extraParams: [String: String]?
+    ) async throws {
+        try await signInWithBrowser(
+            authSessionType: LogtoAuthSession.self,
+            redirectUri: redirectUri,
+            extraParams: extraParams
         )
     }
 }

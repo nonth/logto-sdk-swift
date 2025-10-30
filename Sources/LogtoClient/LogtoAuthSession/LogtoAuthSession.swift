@@ -22,6 +22,7 @@ class LogtoAuthSession {
     let oidcConfig: LogtoCore.OidcConfigResponse
     let redirectUri: URL
     let socialPlugins: [LogtoSocialPlugin]
+    let extraParams: [String: String]?
 
     internal var callbackUri: URL?
 
@@ -30,7 +31,8 @@ class LogtoAuthSession {
         logtoConfig: LogtoConfig,
         oidcConfig: LogtoCore.OidcConfigResponse,
         redirectUri: URL,
-        socialPlugins: [LogtoSocialPlugin]
+        socialPlugins: [LogtoSocialPlugin],
+        extraParams: [String: String]? = nil
     ) {
         authContext = LogtoAuthContext()
         state = LogtoUtilities.generateState()
@@ -42,6 +44,7 @@ class LogtoAuthSession {
         self.oidcConfig = oidcConfig
         self.redirectUri = redirectUri
         self.socialPlugins = socialPlugins
+        self.extraParams = extraParams
     }
 
     func start() async throws -> LogtoCore.CodeTokenResponse {
@@ -54,7 +57,8 @@ class LogtoAuthSession {
                 state: state,
                 scopes: logtoConfig.scopes,
                 resources: logtoConfig.resources,
-                prompt: logtoConfig.prompt
+                prompt: logtoConfig.prompt,
+                extraParams: extraParams
             )
 
             #if !os(macOS)

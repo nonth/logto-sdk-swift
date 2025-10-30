@@ -160,6 +160,33 @@ extension LogtoCoreTests {
         ]))
     }
 
+    func testGenerateSignInUriWithExtraParams() throws {
+        let codeChallenge = LogtoUtilities.generateCodeChallenge(codeVerifier: codeVerifier)
+
+        let url = try LogtoCore.generateSignInUri(
+            authorizationEndpoint: authorizationEndpoint,
+            clientId: clientId,
+            redirectUri: URL(string: "logto://sign-in/redirect")!,
+            codeChallenge: codeChallenge,
+            state: state,
+            extraParams: ["tenant_id": "my_tenant", "ui_locales": "en-US"]
+        )
+        try validateBaseInformation(url: url)
+
+        XCTAssertTrue(validate(url: url, queryItems: [
+            URLQueryItem(name: "client_id", value: "foo"),
+            URLQueryItem(name: "redirect_uri", value: "logto://sign-in/redirect"),
+            URLQueryItem(name: "code_challenge", value: codeChallenge),
+            URLQueryItem(name: "code_challenge_method", value: "S256"),
+            URLQueryItem(name: "state", value: state),
+            URLQueryItem(name: "scope", value: "offline_access openid profile"),
+            URLQueryItem(name: "response_type", value: "code"),
+            URLQueryItem(name: "prompt", value: "consent"),
+            URLQueryItem(name: "tenant_id", value: "my_tenant"),
+            URLQueryItem(name: "ui_locales", value: "en-US"),
+        ]))
+    }
+
     func testGenerateSignOutUri() throws {
         XCTAssertThrowsError(try LogtoCore
             .generateSignOutUri(endSessionEndpoint: "???", idToken: "", postLogoutRedirectUri: nil)) {

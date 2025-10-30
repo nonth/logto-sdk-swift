@@ -23,7 +23,44 @@ class LogtoAuthSessionFailureMock: LogtoAuthSession {
     }
 }
 
+class LogtoAuthSessionExtraParamsMock: LogtoAuthSession {
+    override func start() async throws -> LogtoCore.CodeTokenResponse {
+        // Verify that extraParams were set correctly
+        XCTAssertNotNil(extraParams)
+        XCTAssertEqual(extraParams?["tenant_id"], "test_tenant")
+        XCTAssertEqual(extraParams?["ui_locales"], "en-US")
+
+        return try! JSONDecoder().decode(LogtoCore.CodeTokenResponse.self, from: Data("""
+            {
+                "accessToken": "foo",
+                "refreshToken": "bar",
+                "idToken": "baz",
+                "scope": "openid offline_access",
+                "expiresIn": 300
+            }
+        """.utf8))
+    }
+}
+
 extension LogtoClientTests {
+    func testSignInWithExtraParams() async throws {
+        let client = buildClient(withToken: true)
+
+        do {
+            try await client.signInWithBrowser(
+                authSessionType: LogtoAuthSessionExtraParamsMock.self,
+                redirectUri: "io.logto.dev://callback",
+                extraParams: ["tenant_id": "test_tenant", "ui_locales": "en-US"]
+            )
+        } catch let error as LogtoClientErrors.JwkSet {
+            // Expected error since we don't have JWKS endpoint in the mock
+            XCTAssertEqual(error.type, .unableToFetchJwkSet)
+            return
+        }
+
+        XCTFail()
+    }
+
     func testSignInUnableToFetchJwkSet() async throws {
         let client = buildClient(withToken: true)
 

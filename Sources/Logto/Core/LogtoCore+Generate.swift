@@ -24,7 +24,8 @@ public extension LogtoCore {
         state: String,
         scopes: [String] = [],
         resources: [String] = [],
-        prompt: Prompt = .consent
+        prompt: Prompt = .consent,
+        extraParams: [String: String]? = nil
     ) throws -> URL {
         guard
             var components = URLComponents(string: authorizationEndpoint),
@@ -51,7 +52,11 @@ public extension LogtoCore {
             URLQueryItem(name: "resource", value: $0)
         }
 
-        components.queryItems = (baseQueryItems + resourceQueryItems).filter { $0.value != "" }
+        let extraParamsQueryItems = extraParams?.map {
+            URLQueryItem(name: $0.key, value: $0.value)
+        } ?? []
+
+        components.queryItems = (baseQueryItems + resourceQueryItems + extraParamsQueryItems).filter { $0.value != "" }
 
         guard let url = components.url else {
             throw LogtoErrors.UrlConstruction.unableToConstructUrl

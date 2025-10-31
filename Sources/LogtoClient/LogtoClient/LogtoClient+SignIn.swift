@@ -76,7 +76,7 @@ extension LogtoClient {
      */
     public func signInWithBrowser(
         redirectUri: String,
-        extraParams: [String: String]?
+        extraParams: [String: String]
     ) async throws {
         try await signInWithBrowser(
             authSessionType: LogtoAuthSession.self,
